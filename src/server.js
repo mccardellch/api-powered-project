@@ -6,18 +6,6 @@ const htmlHandler = require('./htmlResponses.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
-// const urlStruct = {
-//  GET: {
-//    '/': jsonHandler.getIndex,
-//    '/style.css': jsonHandler.getStyles,
-//    notFound: jsonHandler.notFound,
-//  },
-//  HEAD: {
-//    '/getUsers': jsonHandler.getUsersMeta,
-//    notFound: jsonHandler.notFoundMeta,
-//  },
-// };
-
 const handlePost = (request, response, parsedUrl) => {
   if (parsedUrl.pathname === '/addUser') {
     const body = [];
@@ -47,6 +35,8 @@ const handleGet = (request, response, parsedUrl) => {
     htmlHandler.getCSS(request, response);
   } else if (parsedUrl.pathname === '/getUsers') {
     jsonHandler.getUsers(request, response);
+  } else if (parsedUrl.pathname === '/getTeam') {
+    jsonHandler.getTeam(request, response);
   } else if (parsedUrl.pathname === '/') {
     htmlHandler.getIndex(request, response);
   } else {

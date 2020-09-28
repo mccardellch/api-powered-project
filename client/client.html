@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Our simple HTTP server</title>
+  <title>Team Builder</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
-  
+    
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
 
@@ -13,7 +13,7 @@
         console.dir(obj);
           
         if (obj.message) {
-            content.innerHTML += `<p>${obj.message}</p>`;
+            content.innerHTML += `<p>${obj[0]}</p>`;
         }
       }
     };
@@ -43,51 +43,42 @@
       }
         
         parseJSON(xhr, content);
-//      if (parseResponse){
-//          const obj = JSON.parse(xhr.response);
-//          console.dir(obj);
-//
-//          content.innerHTML += `<p>${xhr.response}</p>`;
-//      } else {
-//          content.innerHTML += `<p>Meta Data Received</p>`;
-//      }
     };
 
     const requestUpdate = (e, userForm) => {
-      const url = userForm.querySelector('#urlField').value;
-      const method = userForm.querySelector('#methodSelect').value;
-      
-      const name = nameForm.querySelector('#nameField').value;
-      const age = nameForm.querySelector('#ageField').value;
-        
-        
+//      const url = userForm.querySelector('#urlField').value;
+//      const teamName = teamForm.querySelector('#teamNameField').value;
+     
+//      const teamNameField = teamForm.querySelector('#teamNameField');
+//      const teamMembers = teamForm.querySelector('#teamMembers');
+//      const numMembers = teamForm.querySelector('#numMembers');
+//        
+      const url = '/getTeam'; //where to send data    
       const xhr = new XMLHttpRequest();
-      xhr.open(method, url);
+      xhr.open('get', url);
+        
+        //type of info we are asking for
       xhr.setRequestHeader('Accept', 'application/json');
-      
-      if(method === 'get'){
-        xhr.onload = () => handleResponse(xhr, true);
-      } else {
-        xhr.onload = () => handleResponse(xhr, false);
-      }
         
+      xhr.onload = () => handleResponse(xhr);
+    
       xhr.send();
-        
       e.preventDefault(); //event - used in parameter
       return false; //prevent Bubbling
     };
 
-    const sendPost = (e, nameForm) => {
+    const sendPost = (e, teamForm) => {
       e.preventDefault();
       
-      const nameAction = nameForm.getAttribute('action');
-      const nameMethod = nameForm.getAttribute('method');
+      const teamMethod = teamForm.getAttribute('method'); // POST
+      const teamAction = teamForm.getAttribute('action'); // /addUser
         
-      const nameField = nameForm.querySelector('#nameField');
-      const ageField = nameForm.querySelector('#ageField');
+      const teamNameField = teamForm.querySelector('#teamNameField');
+      const teamMembers = teamForm.querySelector('#teamMembers');
+      const numMembers = teamForm.querySelector('#numMembers');
         
       const xhr = new XMLHttpRequest();
-      xhr.open(nameMethod, nameAction);
+      xhr.open(teamMethod, teamAction);
         
         //type of info we are asking for
       xhr.setRequestHeader('Accept', 'application/json');
@@ -96,7 +87,7 @@
         
       xhr.onload = () => handleResponse(xhr);
     
-      const formData = `name=${nameField.value}&age=${ageField.value}`;
+      const formData = `teamName=${teamNameField.value}&teamMembers=${teamMembers.value}&numMembers=${numMembers.value}`;
       xhr.send(formData);
     
       return false;  //prevent Bubbling
@@ -104,41 +95,87 @@
 
     const init = () => {
       const userForm = document.querySelector('#userForm');
-      const getUsers = (e) => requestUpdate(e, userForm, nameForm);
+      const getTeam = (e) => requestUpdate(e, userForm, teamForm);        
+        
+      const teamForm = document.querySelector('#teamForm');
+      const createTeam = (e) => sendPost(e, teamForm);
       
-      const nameForm = document.querySelector('#nameForm');
-      const addUser = (e) => sendPost(e, nameForm);
-      
-      userForm.addEventListener('submit', getUsers);
-      nameForm.addEventListener('submit', addUser);        
+      teamForm.addEventListener('submit', createTeam);       
+      userForm.addEventListener('submit', getTeam);
+      teamForm.addEventListener('submit', updateDisplay);
     };
 
     window.onload = init;
 
+    //update ordered list in #teamDisplay
+    function updateDisplay() {
+        
+        // Get the <ul> element with id="teamDisplay"
+        const membersList = document.querySelector("#teamDisplay");
+
+        // As long as <ul> has a child node, remove it
+        while (membersList.hasChildNodes()) {  
+          membersList.removeChild(membersList.firstChild);
+        }
+        
+        //value for number of members
+        const numMembers = document.querySelector('#numMembers').value;
+        
+        const teamMembers = document.querySelector('#teamMembers');
+        var lines = teamMembers.value.split('\n');
+        for(var i = 0; i < numMembers; i++){
+            var newLi = document.createElement("LI");
+            var name = document.createTextNode(lines[i]);
+            newLi.appendChild(name);
+            membersList.appendChild(newLi);
+        }
+        
+        const selectTeam = document.querySelector('#selectTeam');
+        var option = document.createElement('option');
+        option.text = document.querySelector('#teamNameField').value.trim();
+        selectTeam.add(option);
+    }
   </script>
 </head>
 <body>
   <section id="top">
-    <h3>POST Status Code Tests</h3>
-    <form id="nameForm" action="/addUser" method="post">
-      <label for="name">Name: </label>
-      <input id="nameField" type="text" name="name" />
-      <label for="age">Age: </label>
-      <input id="ageField" type="number" name="age" min="0" max="100" step="1"/>
+    <h3>Team Builder</h3>
+    <form id="teamForm" action="/addUser" method="post">
+      <label for="teamName">Team Name: </label>
+      <input id="teamNameField" type="text" name="teamName" /><br />
+        
+      <label for="searchLogo">Search a Team Logo: </label>
+      <input id="searchLogo" type="text" name="searchLogo" /><br />
+
+      <label for='numMembers'>Number of Members: </label>
+      <select id='numMembers'>
+        <option value='1'>1</option>
+        <option value='2'>2</option>
+        <option value='5'>5</option>
+      </select><br />
+
+      <label for="teamMembers">Team Members: </label>
+      <textarea id="teamMembers" type="text" name="teamMembers"></textarea><br />
+        
       <input id='addUser' type="submit" value="Add User" />
     </form>
+      
+      <hr>
+      
     <form id="userForm" action="/getUsers" method="get">
-      <select id='urlField'>
-        <option value='/getUsers'>/getUsers</option>
-        <option value='/notReal'>/notReal</option>
-      </select>
-      <select id="methodSelect">
-        <option value="get">GET</option>
-        <option value="head">HEAD</option>
+      <select id='selectTeam'>
+        <option value='/getTeam'>standard1</option>
       </select>
       <input id='getUser' type="submit" value="Get User" />
     </form>
   </section>
+    
+  <section id='teamInfo'> 
+    <ol id='teamDisplay'>
+    </ol>
+  </section>
+    
+<!-- section for writing to the webpage-->
   <section id="content">
   </section>
 </body>

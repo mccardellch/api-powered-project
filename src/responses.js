@@ -25,26 +25,36 @@ const getUsers = (request, response) => {
 
 const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
 
+const getTeam = (request, response) => {
+  const team = users['1'];
+  const responseJSON = {
+    team,
+  };
+  console.dir(`team]: ${team}`);
+
+  return respondJSON(request, response, 200, responseJSON);
+};
+
 const addUser = (request, response, body) => {
   const responseJSON = {
-    message: 'Name and age are both required',
+    message: 'Name and Team Members is required',
   };
 
-  if (!body.name || !body.age) {
+  if (!body.teamName || !body.teamMembers) {
     responseJSON.id = 'missingParams';
     return respondJSON(request, response, 400, responseJSON);
   }
 
   let responseCode = 201; // created
 
-  if (users[body.name]) {
+  if (users[body.teamName]) {
     responseCode = 204; // updated
   } else {
-    users[body.name] = {};
-    users[body.name].name = body.name;
+    users[body.teamName] = {}; // creates new json obj
+    users[body.teamName].teamName = body.teamName;
+    users[body.teamName].numMembers = body.numMembers;
+    users[body.teamName].teamMembers = body.teamMembers;
   }
-
-  users[body.name].age = body.age;
 
   if (responseCode === 201) {
     responseJSON.message = 'Created Successfully';
@@ -68,6 +78,7 @@ const notFoundMeta = (request, response) => respondJSONMeta(request, response, 4
 module.exports = {
   getUsers,
   getUsersMeta,
+  getTeam,
   addUser,
   notFound,
   notFoundMeta,
