@@ -27,12 +27,12 @@ const getUsersMeta = (request, response) => respondJSONMeta(request, response, 2
 
 const getTeam = (request, response, params) => {
 //  const team = users[params];
-    const teamName = params['teamName'];
-    const returnTeam = users[teamName];
-//  const responseJSON = { returnTeam };
+  const { teamName } = params;
+  const returnTeam = users[teamName];
+  //  const responseJSON = { returnTeam };
 
-  console.dir(params['teamName']);
-  console.dir(users['teamName']);
+  console.dir(params.teamName);
+  console.dir(users.teamName);
   console.dir(users);
 
   return respondJSON(request, response, 200, users);
