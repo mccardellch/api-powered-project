@@ -7,7 +7,7 @@ const htmlHandler = require('./htmlResponses.js');
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
 const handlePost = (request, response, parsedUrl) => {
-  if (parsedUrl.pathname === '/addUser') {
+  if (parsedUrl.pathname === '/addTeam') {
     const body = [];
 
     // if error, node will call this
@@ -25,7 +25,8 @@ const handlePost = (request, response, parsedUrl) => {
       const bodyString = Buffer.concat(body).toString();
       const bodyParams = query.parse(bodyString);
 
-      jsonHandler.addUser(request, response, bodyParams);
+        console.log('handlePost');
+      jsonHandler.addTeam(request, response, bodyParams);
     });
   }
 };

@@ -113,7 +113,7 @@
         console.log('An error occurred: ' + e.error);
     }   
 
-    const parseJSON = (xhr, content) => {
+    const parseJSON = (xhr, content) => {        
       if(xhr.response && xhr.getResponseHeader('Content-Type') === 'application/json') {
         const obj = JSON.parse(xhr.response);
         console.dir(obj);
@@ -179,7 +179,6 @@
 
       // POST requests
     const sendPost = (e, teamForm) => {
-      e.preventDefault();
       
       const teamMethod = teamForm.getAttribute('method'); // POST
       const teamAction = teamForm.getAttribute('action'); // /addUser
@@ -201,6 +200,8 @@
       const formData = `teamName=${teamNameField.value}&teamMembers=${teamMembers.value}&numMembers=${numMembers.value}`;
       xhr.send(formData);
     
+      
+      e.preventDefault();
       return false;  //prevent Bubbling
     };
 
@@ -266,7 +267,7 @@
            team members, add team button, search logo button -->
     <form id="teamForm" action="/addTeam" method="post" autocomplete="off">
       <label for="teamName">Team Name: </label>
-      <input id="teamNameField" type="text" name="teamName" /><br />
+      <input id="teamNameField" type="text" name="teamName" value="Chicago"/><br />
         
       <label for="searchLogo">Search a Team Logo: </label>
       <input id="searchLogo" type="text" name="searchLogo" /><br />
@@ -279,7 +280,7 @@
       </select><br />
 
       <label for="teamMembers">Team Members: </label>
-      <textarea id="teamMembers" type="text" name="teamMembers"></textarea><br />
+      <textarea id="teamMembers" type="text" name="teamMembers">Harry</textarea><br />
         
       <input id='addTeam' type="submit" value="Add Team" />
       <input id='search' type="submit" value="Search Logos" />
