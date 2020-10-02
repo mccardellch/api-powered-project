@@ -30,13 +30,14 @@ const handlePost = (request, response, parsedUrl) => {
   }
 };
 
-const handleGet = (request, response, parsedUrl) => {
+const handleGet = (request, response, parsedUrl, params) => {
   if (parsedUrl.pathname === '/style.css') {
     htmlHandler.getCSS(request, response);
   } else if (parsedUrl.pathname === '/getUsers') {
     jsonHandler.getUsers(request, response);
   } else if (parsedUrl.pathname === '/getTeam') {
-    jsonHandler.getTeam(request, response);
+    // send params to getTeam
+    jsonHandler.getTeam(request, response, params);
   } else if (parsedUrl.pathname === '/') {
     htmlHandler.getIndex(request, response);
   } else {
@@ -45,7 +46,13 @@ const handleGet = (request, response, parsedUrl) => {
 };
 
 const onRequest = (request, response) => {
+  // parse the url using the url module
+  // This will let us grab any section of the URL by name
   const parsedUrl = url.parse(request.url);
+
+  // grab the query parameters (?key=value&key2=value2&etc=etc)
+  // and parse them into a reusable object by field name
+  const params = query.parse(parsedUrl.query);
 
   console.dir(parsedUrl.pathname);
   console.dir(request.method);
@@ -53,7 +60,7 @@ const onRequest = (request, response) => {
   if (request.method === 'POST') {
     handlePost(request, response, parsedUrl);
   } else {
-    handleGet(request, response, parsedUrl);
+    handleGet(request, response, parsedUrl, params);
   }
 };
 

@@ -5,15 +5,122 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
     
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+<!--  <script src='../src/api-config.js'></script>-->
+    
   <script type="text/babel">
+
+    let displayTerm = "";
+    let offset = 0;
+    let limit;
+
+    function searchButtonClicked(){
+        console.log("searchButtonClicked() called");
+
+        //reset value of offset when this button is clicked
+        offset = 0;
+
+        //1
+        const GIPHY_URL = "https://api.giphy.com/v1/stickers/search?";
+
+        //2
+        //public API key from here: https://developers.giphy.com/docs/
+        //if this one no longer works, get your own (it's free!)
+
+        //https://developers.giphy.com/dashboard/
+        const GIPHY_KEY = "Hh1SdH1lNOEqx0GqRrCGtdt2dXIf4Z3P"
+
+        //3 - build up our URL string
+        let apiUrl = GIPHY_URL;
+        apiUrl += "api_key=" + GIPHY_KEY;
+
+        //4 - parse the user entered term we wish to search
+        let term = document.querySelector("#searchLogo").value;
+        displayTerm = term;
+
+        //5 - get rid of any leading and trailing spaces from the form field
+        term = term.trim();
+
+        //6 - encode spaces and special characters
+        term = encodeURIComponent(term);
+
+        // 7 - if there's no term to search then bail out of the function (return does this)
+        if (term.length < 1) return;
+
+        // 8 - add the search term to the url - the parameter name is 'q'
+        apiUrl += "&q=" + term;
+
+        // 9 - grab the user chosen search limit from the <select>
+//        limit = document.querySelector("#limit").value;
+        apiUrl += "&limit=" + 5;
+
+        // 10 - update the UI
+        document.querySelector("#gif").innerHTML = "<b>Searching for " + displayTerm + "</b>";
+
+        // 11 - what the url looks like
+        console.log(apiUrl);
+
+        //12 Request data
+        getData(apiUrl);
+    }
+
+    function getData(apiUrl){
+        let xhr = new XMLHttpRequest();
+        xhr.onload = dataLoaded;
+        xhr.onerror = dataError;
+        xhr.open("GET", apiUrl);
+        xhr.send();
+    }
+
+    function dataLoaded(e){
+        let xhr = e.target;
+
+        let obj = JSON.parse(xhr.responseText);
+
+        if(!obj.data || obj.data.length == 0){
+            document.querySelector('#status').innerHTML = "<b>No results found for '" + displayTerm + "'</b>";
+            return;
+        }
+
+        let results = obj.data;
+        let rate = obj.rating;
+
+        let bigString = "<p><i>Here are " + results.length + " results for '" + displayTerm + "'</i> - (start=" + offset + ", end=" + (offset + Number(limit)) + ")</p>";
+
+        // 17 - start looping 
+        for (let i = 0; i < results.length; i++){
+            let result = results[i];
+
+            // 18 - get the URL to the GIF
+            let smallURL = result.images.fixed_width_small.url;
+            if(!smallURL) smallURL = "images/no-image-found.png";
+
+            // 19 - get the URL to the Giphy web page
+            let url = result.url;
+
+            // 20 - build a <div> to hold each result
+            // ES6 String Templating
+            let line=`<div class='result'><img src='${smallURL}' title='${result.id}' />`;
+            line += `<span> </span></div>`
+
+            bigString += line;
+        }
+
+        document.querySelector('#gif').innerHTML = bigString;
+        document.querySelector('#status').innerHTML = "<b>Success!</b>";
+    }    
+
+    function dataError(e){
+        console.log('An error occurred: ' + e.error);
+    }   
 
     const parseJSON = (xhr, content) => {
       if(xhr.response && xhr.getResponseHeader('Content-Type') === 'application/json') {
         const obj = JSON.parse(xhr.response);
         console.dir(obj);
+        console.log('xhr: ' + xhr.response);
           
         if (obj.message) {
-            content.innerHTML += `<p>${obj[0]}</p>`;
+            content.innerHTML += `<p>${obj.message}</p>`;
         }
       }
     };
@@ -41,21 +148,24 @@
               content.innerHTML = '<b>Error code, not implemented by client</b>';
               break;
       }
-        
         parseJSON(xhr, content);
     };
 
-    const requestUpdate = (e, userForm) => {
-//      const url = userForm.querySelector('#urlField').value;
-//      const teamName = teamForm.querySelector('#teamNameField').value;
-     
-//      const teamNameField = teamForm.querySelector('#teamNameField');
-//      const teamMembers = teamForm.querySelector('#teamMembers');
-//      const numMembers = teamForm.querySelector('#numMembers');
-//        
-      const url = '/getTeam'; //where to send data    
+      // GET requests
+    const requestUpdate = (e, userForm, teamForm) => {
+      const userMethod = userForm.getAttribute('method'); // POST
+      let userAction = userForm.getAttribute('action'); // /addUser
+        
+      const selectTeam = userForm.querySelector('#selectTeam');
+      
+//      let getUrl = '/getTeam'; //where to send data 
+      userAction += `?teamName=${selectTeam.value}`;
+        
       const xhr = new XMLHttpRequest();
-      xhr.open('get', url);
+      xhr.open(userMethod, userAction);
+        
+        //debug line
+      console.dir(userAction); 
         
         //type of info we are asking for
       xhr.setRequestHeader('Accept', 'application/json');
@@ -67,6 +177,7 @@
       return false; //prevent Bubbling
     };
 
+      // POST requests
     const sendPost = (e, teamForm) => {
       e.preventDefault();
       
@@ -93,26 +204,31 @@
       return false;  //prevent Bubbling
     };
 
-    const init = () => {
+    //initialization function
+    const init = () => {  
+      const teamForm = document.querySelector('#teamForm');    
       const userForm = document.querySelector('#userForm');
-      const getTeam = (e) => requestUpdate(e, userForm, teamForm);        
         
-      const teamForm = document.querySelector('#teamForm');
-      const createTeam = (e) => sendPost(e, teamForm);
+        //functions to call specific request (POST, GET)
+      const getTeam = (e) => requestUpdate(e, userForm, teamForm);        
+      const addTeam = (e) => sendPost(e, teamForm);
       
-      teamForm.addEventListener('submit', createTeam);       
-      userForm.addEventListener('submit', getTeam);
-      teamForm.addEventListener('submit', updateDisplay);
+        //attach correct functions to the correct events
+        document.querySelector('#addTeam').onclick = addTeam;        
+        document.querySelector('#addTeam').onclick = updateDisplay;
+
+        document.querySelector('#getTeam').onclick = getTeam;
+        document.querySelector("#search").onclick = searchButtonClicked;
     };
 
     window.onload = init;
 
     //update ordered list in #teamDisplay
-    function updateDisplay() {
-        
+    function updateDisplay() {        
         // Get the <ul> element with id="teamDisplay"
         const membersList = document.querySelector("#teamDisplay");
 
+        //Remove everything first
         // As long as <ul> has a child node, remove it
         while (membersList.hasChildNodes()) {  
           membersList.removeChild(membersList.firstChild);
@@ -131,16 +247,24 @@
         }
         
         const selectTeam = document.querySelector('#selectTeam');
+        
+        //create new select box option
         var option = document.createElement('option');
         option.text = document.querySelector('#teamNameField').value.trim();
+        option.setAttribute('value', option.text);
         selectTeam.add(option);
     }
+
   </script>
+    
 </head>
 <body>
   <section id="top">
     <h3>Team Builder</h3>
-    <form id="teamForm" action="/addUser" method="post">
+      
+      <!-- TEAM FORM, team name, search logo, num members select box, 
+           team members, add team button, search logo button -->
+    <form id="teamForm" action="/addTeam" method="post" autocomplete="off">
       <label for="teamName">Team Name: </label>
       <input id="teamNameField" type="text" name="teamName" /><br />
         
@@ -157,26 +281,30 @@
       <label for="teamMembers">Team Members: </label>
       <textarea id="teamMembers" type="text" name="teamMembers"></textarea><br />
         
-      <input id='addUser' type="submit" value="Add User" />
+      <input id='addTeam' type="submit" value="Add Team" />
+      <input id='search' type="submit" value="Search Logos" />
     </form>
       
       <hr>
       
-    <form id="userForm" action="/getUsers" method="get">
+      <!-- USER FORM, selectbox, get team button -->
+    <form id="userForm" action="/getTeam" method="get">
       <select id='selectTeam'>
-        <option value='/getTeam'>standard1</option>
+          <option value='all'>All</option>
       </select>
-      <input id='getUser' type="submit" value="Get User" />
+      <input id='getTeam' type="submit" value="Get Team" />
     </form>
   </section>
     
-  <section id='teamInfo'> 
+  <section> 
     <ol id='teamDisplay'>
     </ol>
   </section>
     
 <!-- section for writing to the webpage-->
-  <section id="content">
-  </section>
+  <section id="content"></section>
+    
+    <section id='status'></section>
+    <section id='gif'></section>
 </body>
 </html>

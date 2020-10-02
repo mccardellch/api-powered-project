@@ -1,98 +1,122 @@
-/// / configuring the Giphy API
-// window.onload = (e) => { document.querySelector('#search').onclick = getData; };
+// window.onload = (e) => {
+//  document.querySelector('#search').onclick = searchButtonClicked;
+//  document.querySelector('#more').onclick = moreBtnClicked;
+// };
 //
 // let displayTerm = '';
+// let offset = 0;
+// let limit;
+// let url;
 //
-// function getData() {
-//  const GIPHY_URL = 'https://api.giphy.com/v1/gifs/search?';
-//  const GIPHY_KEY = 'Hh1SdH1lNOEqx0GqRrCGtdt2dXIf4Z3P';
+// function moreBtnClicked() {
+//  console.log('moreBtnClicked() called');
 //
-//  // build up URL string
-//  let url = GIPHY_URL;
-//  url += `api_key=${GIPHY_KEY}`;
+//  // increment offset when button is clicked
+//  offset += Number(document.querySelector('#limit').value);
+//  // add the search term to the url - the parameter name is 'offset'
+//  url += `&offset=${offset}`;
 //
-//  // parse the user entered term we wish to search
-//  let term = document.querySelector('#searchterm').value;
-//  displayTerm = term;
-//  term = term.trim();
-//
-//  // encode spaces and special characters
-//  term = encodeURIComponent(term);
-//
-//  // if there's no term to search then bail out of the function (return does this)
-//  if (term.length < 1) return;
-//
-//  // add the search term to the url - the parameter name is 'q'
-//  url += `&q=${term}`;
-//
-//  // grab the user chosen search limit from the <select>
-//  const limit = document.querySelector('#limit').value;
-//  url += `&limit=${limit}`;
-//
-//  // update the UI
-//  document.querySelector('#content').innerHTML = `<b>Searching for ${displayTerm}</b>`;
-//
-//  // what the url looks like
 //  console.log(url);
-//  console.log(jQuery);
-//  console.log($); // $ is an alias to the jQuery object
-//
-//  // tell jQuery to download the data
-//  $.ajax({
-//    dataType: 'json',
-//    url,
-//    data: null,
-//    success: jsonLoaded, // callback function is called when data arrives
-//  });
-//
-//  $('#content').fadeOut(100);
-//
-//  console.log('getData() called');
+//  getData(url);
 // }
 //
-// function jsonLoaded(obj) {
-//  console.log(`obj = ${obj}`);
-//  console.log(`obj stringified = ${JSON.stringify(obj)}`);
+// function searchButtonClicked() {
+//  console.log('searchButtonClicked() called');
 //
-//  // if there are no results, print a message and return
+//  // reset value of offset when this button is clicked
+//  offset = 0;
+//
+//  // 1
+//  const GIPHY_URL = 'https://api.giphy.com/v1/gifs/search?';
+//
+//  // 2
+//  // public API key from here: https://developers.giphy.com/docs/
+//  // if this one no longer works, get your own (it's free!)
+//
+//  // https://developers.giphy.com/dashboard/
+//  const GIPHY_KEY = 'exd995Z9NG9J8IJdaeV9mSR9tX1TBVKb';
+//
+//  // 3 - build up our URL string
+//  url = GIPHY_URL;
+//  url += `api_key=${GIPHY_KEY}`;
+//
+//  // 4 - parse the user entered term we wish to search
+//  let term = document.querySelector('#searchterm').value;
+//  displayTerm = term;
+//
+//  // 5 - get rid of any leading and trailing spaces from the form field
+//  term = term.trim();
+//
+//  // 6 - encode spaces and special characters
+//  term = encodeURIComponent(term);
+//
+//  // 7 - if there's no term to search then bail out of the function (return does this)
+//  if (term.length < 1) return;
+//
+//  // 8 - add the search term to the url - the parameter name is 'q'
+//  url += `&q=${term}`;
+//
+//  // 9 - grab the user chosen search limit from the <select>
+//  limit = document.querySelector('#limit').value;
+//  url += `&limit=${limit}`;
+//
+//  // 10 - update the UI
+//  document.querySelector('#content').innerHTML = `<b>Searching for ${displayTerm}</b>`;
+//
+//  // 11 - what the url looks like
+//  console.log(url);
+//
+//  // 12 Request data
+//  getData(url);
+// }
+//
+// function getData(url) {
+//  const xhr = new XMLHttpRequest();
+//  xhr.onload = dataLoaded;
+//  xhr.onerror = dataError;
+//  xhr.open('GET', url);
+//  xhr.send();
+// }
+//
+// function dataLoaded(e) {
+//  const xhr = e.target;
+//
+//  const obj = JSON.parse(xhr.responseText);
+//
 //  if (!obj.data || obj.data.length == 0) {
-//    document.querySelector('#content').innerHTML =
-// `<p><i>No results found for '${displayTerm}'</i></p>`;
-//    $('#content').fadeIn(500);
-//    return; // Bail out
+//    document.querySelector('#status').innerHTML = `<b>No results found for '${displayTerm}'</b>`;
+//    return;
 //  }
-//  console.log('test');
-//  console.log(obj.data);
-//  console.log('');
 //
-//  // If there is an array of results, loop through them
 //  const results = obj.data;
-//  console.log(`results.Length = ${results.length}`);
-//  let bigString = `<p><i>Here are ${results.length} results for '${displayTerm}'</i></p>`;
+//  const rate = obj.rating;
 //
-//  // start looping (could also have used for...of loop)
+//  let bigString = `<p><i>Here are ${results.length} results for '${displayTerm}'</i>
+// - (start=${offset}, end=${offset + Number(limit)})</p>`;
+//
+//  // 17 - start looping
 //  for (let i = 0; i < results.length; i++) {
 //    const result = results[i];
 //
-//    // get the URL to the GIF
+//    // 18 - get the URL to the GIF
 //    let smallURL = result.images.fixed_width_small.url;
 //    if (!smallURL) smallURL = 'images/no-image-found.png';
 //
-//    // get the URL to the Giphy web page
+//    // 19 - get the URL to the Giphy web page
 //    const { url } = result;
 //
-//    // build a <div> to hold each result
+//    // 20 - build a <div> to hold each result
 //    // ES6 String Templating
 //    let line = `<div class='result'><img src='${smallURL}' title='${result.id}' />`;
-//    line += `<span><a target='_blank' href = '${url}'>View on Giphy </a>\n </span></div>`;
+//    line += `<span><a target='_blank' href = '${url}'>View on Giphy </a></span></div>`;
 //
-//    // Concatenate the line to our big chunk of HTML
 //    bigString += line;
 //  }
 //
-//  // throw it into the #content div
 //  document.querySelector('#content').innerHTML = bigString;
+//  document.querySelector('#status').innerHTML = '<b>Success!</b>';
+// }
 //
-//  // fade it in
-//  $('#content').fadeIn(500);
+// function dataError(e) {
+//  console.log('An error occurred');
 // }

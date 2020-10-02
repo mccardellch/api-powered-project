@@ -25,17 +25,20 @@ const getUsers = (request, response) => {
 
 const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
 
-const getTeam = (request, response) => {
-  const team = users['1'];
-  const responseJSON = {
-    team,
-  };
-  console.dir(`team]: ${team}`);
+const getTeam = (request, response, params) => {
+//  const team = users[params];
+    const teamName = params['teamName'];
+    const returnTeam = users[teamName];
+//  const responseJSON = { returnTeam };
 
-  return respondJSON(request, response, 200, responseJSON);
+  console.dir(params['teamName']);
+  console.dir(users['teamName']);
+  console.dir(users);
+
+  return respondJSON(request, response, 200, users);
 };
 
-const addUser = (request, response, body) => {
+const addTeam = (request, response, body) => {
   const responseJSON = {
     message: 'Name and Team Members is required',
   };
@@ -79,7 +82,7 @@ module.exports = {
   getUsers,
   getUsersMeta,
   getTeam,
-  addUser,
+  addTeam,
   notFound,
   notFoundMeta,
 };
