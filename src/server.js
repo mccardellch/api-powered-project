@@ -12,7 +12,7 @@ const handlePost = (request, response, parsedUrl) => {
 
     // if error, node will call this
     request.on('error', (err) => {
-//      console.dir(err);
+      console.dir(err);
       response.statusCode = 400;
       response.end();
     });
@@ -53,8 +53,8 @@ const onRequest = (request, response) => {
   // and parse them into a reusable object by field name
   const params = query.parse(parsedUrl.query);
 
-  console.dir(parsedUrl.pathname);
-  console.dir(request.method);
+//  console.dir(parsedUrl.pathname);
+//  console.dir(request.method);
 
   if (request.method === 'POST') {
     handlePost(request, response, parsedUrl);
@@ -64,4 +64,4 @@ const onRequest = (request, response) => {
 };
 
 http.createServer(onRequest).listen(port);
-console.log(`Listening on 127.0.0.1: ${port}`);
+//console.log(`Listening on 127.0.0.1: ${port}`);
