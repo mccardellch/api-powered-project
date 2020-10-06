@@ -1,26 +1,27 @@
 {
-  "name": "http-api-assignment-ii",
+  "name": "api-project1",
   "version": "1.0.0",
   "engines": {
     "node": "12.18.3",
     "npm": "6.14.6"
   },
-  "description": "homework",
+  "description": "API Powered Project",
   "main": "index.js",
   "scripts": {
     "start": "node ./src/server.js",
+    "pretest": "eslint ./src --fix",
     "test": "echo \"Test complete\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mccardellch/http-api-assignment-ii.git"
+    "url": "git+https://github.com/mccardellch/api-powered-project.git"
   },
   "author": "Harry McCardell",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/mccardellch/http-api-assignment-ii/issues"
+    "url": "https://github.com/mccardellch/api-powered-project.git/issues"
   },
-  "homepage": "https://github.com/mccardellch/http-api-assignment-ii#readme",
+  "homepage": "https://github.com/mccardellch/api-powered-project.git#readme",
   "devDependencies": {
     "eslint": "^7.10.0",
     "eslint-config-airbnb": "^18.2.0",

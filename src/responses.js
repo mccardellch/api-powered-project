@@ -15,27 +15,14 @@ const respondJSONMeta = (request, response, status) => {
   response.end();
 };
 
-const getUsers = (request, response) => {
-  const responseJSON = {
-    users,
-  };
-
-  return respondJSON(request, response, 200, responseJSON);
-};
-
-const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
-
 const getTeam = (request, response, params) => {
-//  const team = users[params];
-  const teamName = params['teamName'];
-  const returnTeam = users[teamName];
-  //  const responseJSON = { returnTeam };
+  //  console.log(params.teamName);
 
-//  console.dir(params.teamName);
-//  console.dir(users.teamName);
-  console.dir(users);
-
-  return respondJSON(request, response, 200, users);
+  if (params.teamName === 'all') {
+    return respondJSON(request, response, 200, users);
+  }
+  const returnTeam = params.teamName;
+  return respondJSON(request, response, 200, users[returnTeam]);
 };
 
 const addTeam = (request, response, body) => {
@@ -57,8 +44,9 @@ const addTeam = (request, response, body) => {
     users[body.teamName].teamName = body.teamName;
     users[body.teamName].numMembers = body.numMembers;
     users[body.teamName].teamMembers = body.teamMembers;
+    //    user[body.team].logo = body.logo;
   }
-    
+
   if (responseCode === 201) {
     responseJSON.message = 'Created Successfully';
     return respondJSON(request, response, responseCode, responseJSON);
@@ -79,8 +67,6 @@ const notFound = (request, response) => {
 const notFoundMeta = (request, response) => respondJSONMeta(request, response, 404);
 
 module.exports = {
-  getUsers,
-  getUsersMeta,
   getTeam,
   addTeam,
   notFound,

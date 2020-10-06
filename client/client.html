@@ -5,123 +5,21 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
     
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
-<!--  <script src='../src/api-config.js'></script>-->
     
   <script type="text/babel">
 
+    //for API 
     let displayTerm = "";
     let offset = 0;
     let limit;
 
-    function searchButtonClicked(){
-        console.log("searchButtonClicked() called");
-
-        //reset value of offset when this button is clicked
-        offset = 0;
-
-        //1
-        const GIPHY_URL = "https://api.giphy.com/v1/stickers/search?";
-
-        //2
-        //public API key from here: https://developers.giphy.com/docs/
-        //if this one no longer works, get your own (it's free!)
-
-        //https://developers.giphy.com/dashboard/
-        const GIPHY_KEY = "Hh1SdH1lNOEqx0GqRrCGtdt2dXIf4Z3P"
-
-        //3 - build up our URL string
-        let apiUrl = GIPHY_URL;
-        apiUrl += "api_key=" + GIPHY_KEY;
-
-        //4 - parse the user entered term we wish to search
-        let term = document.querySelector("#searchLogo").value;
-        displayTerm = term;
-
-        //5 - get rid of any leading and trailing spaces from the form field
-        term = term.trim();
-
-        //6 - encode spaces and special characters
-        term = encodeURIComponent(term);
-
-        // 7 - if there's no term to search then bail out of the function (return does this)
-        if (term.length < 1) return;
-
-        // 8 - add the search term to the url - the parameter name is 'q'
-        apiUrl += "&q=" + term;
-
-        // 9 - grab the user chosen search limit from the <select>
-//        limit = document.querySelector("#limit").value;
-        apiUrl += "&limit=" + 5;
-
-        // 10 - update the UI
-        document.querySelector("#gif").innerHTML = "<b>Searching for " + displayTerm + "</b>";
-
-        // 11 - what the url looks like
-        console.log(apiUrl);
-
-        //12 Request data
-        getData(apiUrl);
-    }
-
-    function getData(apiUrl){
-        let xhr = new XMLHttpRequest();
-        xhr.onload = dataLoaded;
-        xhr.onerror = dataError;
-        xhr.open("GET", apiUrl);
-        xhr.send();
-    }
-
-    function dataLoaded(e){
-        let xhr = e.target;
-
-        let obj = JSON.parse(xhr.responseText);
-
-        if(!obj.data || obj.data.length == 0){
-            document.querySelector('#status').innerHTML = "<b>No results found for '" + displayTerm + "'</b>";
-            return;
-        }
-
-        let results = obj.data;
-        let rate = obj.rating;
-
-        let bigString = "<p><i>Here are " + results.length + " results for '" + displayTerm + "'</i> - (start=" + offset + ", end=" + (offset + Number(limit)) + ")</p>";
-
-        // 17 - start looping 
-        for (let i = 0; i < results.length; i++){
-            let result = results[i];
-
-            // 18 - get the URL to the GIF
-            let smallURL = result.images.fixed_width_small.url;
-            if(!smallURL) smallURL = "images/no-image-found.png";
-
-            // 19 - get the URL to the Giphy web page
-            let url = result.url;
-
-            // 20 - build a <div> to hold each result
-            // ES6 String Templating
-            let line=`<div class='result'><img src='${smallURL}' title='${result.id}' />`;
-            line += `<span> </span></div>`
-
-            bigString += line;
-        }
-
-        document.querySelector('#gif').innerHTML = bigString;
-        document.querySelector('#status').innerHTML = "<b>Success!</b>";
-    }    
-
-    function dataError(e){
-        console.log('An error occurred: ' + e.error);
-    }   
-
     const parseJSON = (xhr, content) => {        
       if(xhr.response && xhr.getResponseHeader('Content-Type') === 'application/json') {
         const obj = JSON.parse(xhr.response);
-        console.dir(obj);
-        console.log('xhr: ' + xhr.response);
+//        console.dir(obj);
+//        console.log('xhr: ' + xhr.response);
           
-        if (obj.message) {
-            content.innerHTML += `<p>${obj.message}</p>`;
-        }
+        if (obj.message) { content.innerHTML += `<p>${obj.message}</p>`; }
       }
     };
 
@@ -152,26 +50,21 @@
     };
 
       // GET requests
-    const requestUpdate = (e, userForm, teamForm) => {
-      const userMethod = userForm.getAttribute('method'); // POST
-      let userAction = userForm.getAttribute('action'); // /addUser
-        
+    const requestUpdate = (e, userForm) => {
+      const userMethod = userForm.getAttribute('method'); // GET
+      let userAction = userForm.getAttribute('action'); // /getTeam
+    
+        //get data from select box
       const selectTeam = userForm.querySelector('#selectTeam');
-      
-//      let getUrl = '/getTeam'; //where to send data 
       userAction += `?teamName=${selectTeam.value}`;
         
       const xhr = new XMLHttpRequest();
       xhr.open(userMethod, userAction);
-        
-        //debug line
-      console.dir(userAction); 
-        
+
         //type of info we are asking for
       xhr.setRequestHeader('Accept', 'application/json');
         
-      xhr.onload = () => handleResponse(xhr);
-    
+      xhr.onload = () => displayTeam(xhr);
       xhr.send();
       e.preventDefault(); //event - used in parameter
       return false; //prevent Bubbling
@@ -179,14 +72,23 @@
 
       // POST requests
     const sendPost = (e, teamForm) => {
-      
+      e.preventDefault();
+
       const teamMethod = teamForm.getAttribute('method'); // POST
       const teamAction = teamForm.getAttribute('action'); // /addUser
-        
       const teamNameField = teamForm.querySelector('#teamNameField');
       const teamMembers = teamForm.querySelector('#teamMembers');
       const numMembers = teamForm.querySelector('#numMembers');
-        
+      let selectedRadioID;
+      
+      const rbs = document.querySelectorAll('input[name="radio"]');
+        for (const rb of rbs) {
+          if (rb.checked) {
+            selectedRadioID = rb.id;
+            break;
+          }
+        }
+                
       const xhr = new XMLHttpRequest();
       xhr.open(teamMethod, teamAction);
         
@@ -194,14 +96,13 @@
       xhr.setRequestHeader('Accept', 'application/json');
         //tell receiver the format it is in
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        
-      xhr.onload = () => handleResponse(xhr);
+//      xhr.onload = () => handleResponse(xhr);
     
-      const formData = `teamName=${teamNameField.value}&teamMembers=${teamMembers.value}&numMembers=${numMembers.value}`;
+      const formData = `teamName=${teamNameField.value}&imgUrl=${selectedRadioID}&numMembers=${numMembers.value}&teamMembers=${teamMembers.value}`;
       xhr.send(formData);
     
-      
-      e.preventDefault();
+      updateDisplay();
+        
       return false;  //prevent Bubbling
     };
 
@@ -210,16 +111,16 @@
       const teamForm = document.querySelector('#teamForm');    
       const userForm = document.querySelector('#userForm');
         
-        //functions to call specific request (POST, GET)
-      const getTeam = (e) => requestUpdate(e, userForm, teamForm);        
+      //functions to call specific request (POST, GET)
+      const getTeam = (e) => requestUpdate(e, userForm);        
       const addTeam = (e) => sendPost(e, teamForm);
-      
-        //attach correct functions to the correct events
-        document.querySelector('#addTeam').onclick = addTeam;        
-        document.querySelector('#addTeam').onclick = updateDisplay;
-
-        document.querySelector('#getTeam').onclick = getTeam;
-        document.querySelector("#search").onclick = searchButtonClicked;
+      const searchLogo = (e) => searchButtonClicked(e);
+        
+      //attach correct functions to the correct events
+      document.querySelector('#addTeam').onclick = addTeam;
+//      document.querySelector('#addTeam').onclick = updateDisplay;
+      document.querySelector('#getTeam').onclick = getTeam;
+      document.querySelector('#search').onclick = searchLogo;
     };
 
     window.onload = init;
@@ -227,34 +128,182 @@
     //update ordered list in #teamDisplay
     function updateDisplay() {        
         // Get the <ul> element with id="teamDisplay"
-        const membersList = document.querySelector("#teamDisplay");
-
+      const membersList = document.querySelector("#teamDisplay");
+        
         //Remove everything first
         // As long as <ul> has a child node, remove it
-        while (membersList.hasChildNodes()) {  
-          membersList.removeChild(membersList.firstChild);
+      while (membersList.hasChildNodes()) {  
+        membersList.removeChild(membersList.firstChild);
+      }
+       
+      const teamName = teamForm.querySelector('#teamNameField').value; 
+      let h6 = document.createElement('h6');
+      let content = document.createTextNode(teamName);
+        h6.appendChild(content);
+        membersList.appendChild(h6);
+        
+      let selectedRadioID;
+      
+      const rbs = document.querySelectorAll('input[name="radio"]');
+        for (const rb of rbs) {
+          if (rb.checked) {
+            selectedRadioID = rb.id;
+            break;
+          }
         }
+        
+      console.log('id: ' + selectedRadioID);
+      let newImg = `<p><img src='${selectedRadioID}'/></p>`    
+      membersList.append(newImg);    
         
         //value for number of members
-        const numMembers = document.querySelector('#numMembers').value;
+      const numMembers = document.querySelector('#numMembers').value;
         
-        const teamMembers = document.querySelector('#teamMembers');
-        var lines = teamMembers.value.split('\n');
-        for(var i = 0; i < numMembers; i++){
-            var newLi = document.createElement("LI");
-            var name = document.createTextNode(lines[i]);
-            newLi.appendChild(name);
-            membersList.appendChild(newLi);
-        }
+      const teamMembers = document.querySelector('#teamMembers');
+      var lines = teamMembers.value.split('\n');
+      for(var i = 0; i < numMembers; i++){
+          var newLi = document.createElement("LI");
+          var name = document.createTextNode(lines[i]);
+          newLi.appendChild(name);
+          membersList.appendChild(newLi);
+      }
         
-        const selectTeam = document.querySelector('#selectTeam');
-        
+      const selectTeam = document.querySelector('#selectTeam');
+
         //create new select box option
         var option = document.createElement('option');
         option.text = document.querySelector('#teamNameField').value.trim();
         option.setAttribute('value', option.text);
         selectTeam.add(option);
     }
+
+    //display the team that the user gets
+    function displayTeam(xhr) {
+        //get team attributes (name, logo, num mems, members)
+      const teamName = teamForm.querySelector('#teamNameField').value;
+      const teamMembers = teamForm.querySelector('#teamMembers').value;
+      const numMembers = teamForm.querySelector('#numMembers').value; 
+    
+      console.log('xhr response: ' + xhr.response);
+      console.log('keys length: ' + Object.keys(xhr.response).length);
+              let selectedRadioID;
+      
+      const rbs = document.querySelectorAll('input[name="radio"]');
+        for (const rb of rbs) {
+          if (rb.checked) {
+            selectedRadioID = rb.id;
+            break;
+          }
+        }
+        
+//      for (let i = 0; i < Object.keys(xhr.response).length; i++){
+//          
+//      }
+        
+         //build div to hold team information
+        let line=`<div id='showTeam'> <h6>'${teamName}'</h6><img src='${selectedRadioID}'/>`;
+        line += `<span> </span> <p>'${NumMembers}'</p><p>'${Members}'</p></div>`;
+        
+        document.querySelector('#content').innerHTML = line;
+        //add info to <p></p>
+    }
+
+    // functions for the API
+    function searchButtonClicked(e){
+        //debug line
+        console.log("searchButtonClicked() called");
+
+        //reset value of offset when this button is clicked
+        offset = 0;
+        
+        const GIPHY_URL = "https://api.giphy.com/v1/stickers/search?";
+
+        //https://developers.giphy.com/dashboard/
+        const GIPHY_KEY = "Hh1SdH1lNOEqx0GqRrCGtdt2dXIf4Z3P"
+
+        let apiUrl = GIPHY_URL;
+        apiUrl += "api_key=" + GIPHY_KEY;
+
+        // parse the user entered term we wish to search
+        let term = document.querySelector("#searchLogo").value;
+        displayTerm = term;
+        term = term.trim();
+
+        //encode spaces and special characters
+        term = encodeURIComponent(term);
+
+        // if there's no term to search then bail out of the function (return does this)
+        if (term.length < 1) return;
+
+        // add the search term to the url - the parameter name is 'q'
+        apiUrl += "&q=" + term;
+
+    //        limit = document.querySelector("#limit").value;
+        apiUrl += "&limit=" + 5;
+        document.querySelector("#gif").innerHTML = "<b>Searching for " + displayTerm + "</b>";
+
+        //debug line
+        console.log(apiUrl);
+        
+        getData(e, apiUrl);
+    }
+
+    function getData(e, apiUrl){
+        let xhr = new XMLHttpRequest();
+        xhr.onload = dataLoaded;
+        xhr.onerror = dataError;
+        xhr.open("get", apiUrl);
+        xhr.send();
+        e.preventDefault();
+        return false;
+    }
+
+    function dataLoaded(e){
+        let xhr = e.target;
+
+        let obj = JSON.parse(xhr.responseText);
+
+        //if no results
+        if(!obj.data || obj.data.length == 0){
+            document.querySelector('#status').innerHTML = "<b>No results found for '" + displayTerm + "'</b>";
+            return;
+        }
+
+        let results = obj.data;
+        let pictureResults = {};
+        
+        let bigString = "<p><i>Here are " + results.length + " results for '" + displayTerm + "'</i></p>";
+ 
+        //loop to display images
+        for (let i = 0; i < results.length; i++){
+            let result = results[i];
+            let smallURL = result.images.fixed_width_small.url;
+            if(!smallURL) smallURL = "images/no-image-found.png";
+
+            // get the URL to the Giphy web page
+            let url = result.url;
+
+            if (result.title === "") {
+                result.title = null;
+            }
+            
+            // build a <div> to hold each result and radio button
+            let line=`<div class='result'><img src='${smallURL}' title='${result.id}' />`;
+            line += `<span> </span><input type='radio' id='${smallURL}' name='giphy' value='${smallURL}'> <label for='${displayTerm + i}'>'${result.title}'</label></div>`
+            console.log(`${result.title}: ${smallURL}`);
+            
+            pictureResults[i] = result.title;
+            
+            bigString += line;
+        }
+
+        document.querySelector('#gif').innerHTML = bigString;
+        document.querySelector('#status').innerHTML = "<b>Success!</b>";
+    }    
+
+    function dataError(e){
+        console.log('An error occurred: ' + e.error);
+    }  
 
   </script>
     
@@ -270,7 +319,8 @@
       <input id="teamNameField" type="text" name="teamName" value="Chicago"/><br />
         
       <label for="searchLogo">Search a Team Logo: </label>
-      <input id="searchLogo" type="text" name="searchLogo" /><br />
+      <input id="searchLogo" type="text" name="searchLogo" value="Bulls"/><br />
+      <input id='search' type="submit" value="Search Logos" /><br />
 
       <label for='numMembers'>Number of Members: </label>
       <select id='numMembers'>
@@ -280,10 +330,9 @@
       </select><br />
 
       <label for="teamMembers">Team Members: </label>
-      <textarea id="teamMembers" type="text" name="teamMembers">Harry</textarea><br />
+      <textarea id="teamMembers" type="text" name="teamMembers">Jordan</textarea><br />
         
       <input id='addTeam' type="submit" value="Add Team" />
-      <input id='search' type="submit" value="Search Logos" />
     </form>
       
       <hr>

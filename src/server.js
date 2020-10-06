@@ -12,7 +12,7 @@ const handlePost = (request, response, parsedUrl) => {
 
     // if error, node will call this
     request.on('error', (err) => {
-      console.dir(err);
+//      console.dir(err);
       response.statusCode = 400;
       response.end();
     });
@@ -24,8 +24,8 @@ const handlePost = (request, response, parsedUrl) => {
     request.on('end', () => {
       const bodyString = Buffer.concat(body).toString();
       const bodyParams = query.parse(bodyString);
-
-        console.log('handlePost');
+      //        console.log(bodyString);
+      //        console.dir(bodyParams);
       jsonHandler.addTeam(request, response, bodyParams);
     });
   }
@@ -34,8 +34,6 @@ const handlePost = (request, response, parsedUrl) => {
 const handleGet = (request, response, parsedUrl, params) => {
   if (parsedUrl.pathname === '/style.css') {
     htmlHandler.getCSS(request, response);
-  } else if (parsedUrl.pathname === '/getUsers') {
-    jsonHandler.getUsers(request, response);
   } else if (parsedUrl.pathname === '/getTeam') {
     // send params to getTeam
     jsonHandler.getTeam(request, response, params);
